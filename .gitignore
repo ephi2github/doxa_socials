@@ -1,0 +1,7 @@
+.claude/
+.playwright-mcp/
+*.png
+*.jpeg
+*.jpg
+.DS_Store
+node_modules/

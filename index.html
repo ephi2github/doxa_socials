@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#19003a" />
+<title>DOXA Social — share every link from one scan</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="apple-touch-icon" href="logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --primary: #7851A9;
+    --secondary: #b277d3;
+    --accent: #19003a;
+    --bg: #19003a;
+    --bg-2: #2a0d5e;
+    --card: #ffffff;
+    --text: #19003a;
+    --text-on-dark: #f5eefb;
+    --muted: #6b5f7e;
+    --muted-on-dark: #b8a8d4;
+    --border: #ece4f5;
+    --border-on-dark: rgba(255, 255, 255, 0.12);
+    --ring: rgba(120, 81, 169, 0.28);
+    --shadow-sm: 0 1px 2px rgba(25, 0, 58, 0.18);
+    --shadow-md: 0 8px 24px rgba(25, 0, 58, 0.32);
+    --shadow-lg: 0 24px 60px rgba(25, 0, 58, 0.45);
+    --radius: 14px;
+    --radius-lg: 22px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Georama', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-on-dark);
+    background: linear-gradient(170deg, #19003a 0%, #2a0d5e 55%, #3d1487 100%);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(900px 500px at 12% -10%, rgba(178, 119, 211, 0.35), transparent 60%),
+      radial-gradient(700px 400px at 110% 10%, rgba(120, 81, 169, 0.30), transparent 60%),
+      radial-gradient(600px 400px at 50% 110%, rgba(178, 119, 211, 0.20), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  main { position: relative; z-index: 1; }
+
+  a { color: var(--primary); text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; }
+
+  /* ───────────────────────── Creator ───────────────────────── */
+
+  .top {
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+    font-size: 17px;
+  }
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 6px 18px rgba(120, 81, 169, 0.45);
+    overflow: hidden;
+  }
+  .brand-mark img {
+    width: 28px;
+    height: 28px;
+    display: block;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand-text small {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--secondary);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .pill {
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--text-on-dark);
+    font-size: 13px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+  }
+
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 24px 80px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; padding-bottom: 320px; }
+  }
+
+  .hero {
+    margin-bottom: 22px;
+    color: #fff;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 4.4vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    margin: 0 0 10px;
+    color: #fff;
+  }
+  .hero h1 .accent {
+    background: linear-gradient(90deg, #fff 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p {
+    margin: 0;
+    color: var(--muted-on-dark);
+    max-width: 560px;
+    font-size: 15px;
+  }
+
+  .card {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    margin: 0 0 16px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .field .hint {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--accent);
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input::placeholder { color: #b3a8c4; }
+  .input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .filter-bar .input { flex: 1; }
+  .count {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .platforms {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .platform {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .platform:hover { background: rgba(120, 81, 169, 0.04); }
+  .platform.active {
+    background: rgba(120, 81, 169, 0.06);
+    border-color: rgba(120, 81, 169, 0.18);
+  }
+  .platform-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f5eefb;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .platform-icon img, .platform-icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+  }
+  .platform-body {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+  @media (max-width: 540px) {
+    .platform-body { grid-template-columns: 1fr; gap: 6px; }
+  }
+  .platform-name {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 14px;
+  }
+  .platform-input {
+    padding: 9px 12px;
+    font-size: 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    color: var(--accent);
+    width: 100%;
+  }
+  .platform-input::placeholder { color: #b3a8c4; }
+  .platform-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  /* ───────────────────────── Preview / QR panel ───────────────────────── */
+
+  .preview-wrap {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .preview-wrap {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: auto;
+      z-index: 50;
+      background: rgba(25, 0, 58, 0.92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 16px env(safe-area-inset-bottom, 12px);
+      box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.4);
+      flex-direction: row;
+      align-items: stretch;
+      max-height: 280px;
+    }
+    .preview-wrap > .card { flex: 1; padding: 12px; margin: 0; box-shadow: none; border: 0; }
+  }
+
+  .qr-card {
+    text-align: center;
+    background: linear-gradient(160deg, #fff 0%, #f3e9ff 100%);
+    border: 1px solid rgba(120, 81, 169, 0.18);
+  }
+  #qr {
+    display: inline-block;
+    padding: 14px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+  }
+  #qr canvas, #qr img {
+    display: block;
+    border-radius: 4px;
+  }
+  .qr-empty {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 32px 12px;
+  }
+  .qr-meta {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn {
+    border: 0;
+    background: var(--card);
+    color: var(--accent);
+    padding: 11px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1.5px solid var(--border);
+    transition: background 0.15s, border-color 0.15s, transform 0.05s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn:hover { border-color: var(--primary); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(120, 81, 169, 0.35);
+  }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ───────────────────────── Viewer ───────────────────────── */
+
+  body.viewer {
+    background: linear-gradient(170deg, #19003a 0%, #2a0d5e 50%, #4a1f8a 100%);
+    color: var(--text-on-dark);
+  }
+  body.viewer::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(700px 500px at 50% -10%, rgba(178, 119, 211, 0.4), transparent 60%),
+      radial-gradient(500px 500px at 50% 110%, rgba(120, 81, 169, 0.3), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+    display: block;
+  }
+  .viewer-wrap {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .viewer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--text-on-dark);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .viewer-brand img { width: 18px; height: 18px; display: block; }
+  .viewer-header {
+    margin-bottom: 28px;
+  }
+  .avatar {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+    font-weight: 700;
+    margin: 0 auto 18px;
+    box-shadow: 0 16px 40px rgba(120, 81, 169, 0.55), inset 0 0 0 4px rgba(255, 255, 255, 0.12);
+    letter-spacing: -0.02em;
+  }
+  .viewer-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+    word-break: break-word;
+  }
+  .viewer-tag {
+    font-size: 14px;
+    color: var(--muted-on-dark);
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .link-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 8px 20px rgba(25, 0, 58, 0.35);
+    transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+    text-align: left;
+  }
+  .link-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(25, 0, 58, 0.5);
+    border-color: var(--secondary);
+  }
+  .link-btn:active { transform: translateY(0); }
+  .link-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f5eefb;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .link-icon img, .link-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .link-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link-handle {
+    display: block;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 1px;
+  }
+  .arrow {
+    color: var(--muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .viewer-footer {
+    margin-top: 40px;
+    font-size: 12px;
+    color: var(--muted-on-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .viewer-footer a {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .viewer-footer .dot {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+  }
+  .viewer-footer .dot img { width: 100%; height: 100%; filter: brightness(0) invert(1); opacity: 0.85; }
+  .empty-viewer {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    padding: 32px 20px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    color: var(--muted-on-dark);
+  }
+</style>
+</head>
+<body>
+
+<main id="app"></main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(() => {
+  // ─── Inline SVG icons (used when simpleicons doesn't have a generic) ───
+  const SVG = {
+    mail:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    phone:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    globe:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+    link:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    copy:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  };
+
+  const strip = (v, p) => v.startsWith(p) ? v.slice(p.length) : v;
+
+  // ─── Platforms (PG-13). Order roughly by familiarity / category. ───
+  const PLATFORMS = [
+    // Mainstream
+    { key:'ig', name:'Instagram',     icon:'instagram',   color:'E4405F', ph:'username',                  url:v => `https://instagram.com/${strip(v,'@')}` },
+    { key:'tt', name:'TikTok',        icon:'tiktok',      color:'000000', ph:'username',                  url:v => `https://tiktok.com/@${strip(v,'@')}` },
+    { key:'yt', name:'YouTube',       icon:'youtube',     color:'FF0000', ph:'@channel',                  url:v => `https://youtube.com/@${strip(v,'@')}` },
+    { key:'tw', name:'X / Twitter',   icon:'x',           color:'000000', ph:'username',                  url:v => `https://x.com/${strip(v,'@')}` },
+    { key:'fb', name:'Facebook',      icon:'facebook',    color:'1877F2', ph:'username or page',          url:v => `https://facebook.com/${v}` },
+    { key:'li', name:'LinkedIn',      icon:'linkedin',    color:'0A66C2', ph:'in/username',               url:v => `https://linkedin.com/${/^(in|company)\//.test(v) ? v : 'in/' + strip(v,'@')}` },
+    { key:'th', name:'Threads',       icon:'threads',     color:'000000', ph:'username',                  url:v => `https://threads.net/@${strip(v,'@')}` },
+    { key:'sn', name:'Snapchat',      icon:'snapchat',    color:'FFFC00', ph:'username',                  url:v => `https://snapchat.com/add/${v}` },
+    { key:'pi', name:'Pinterest',     icon:'pinterest',   color:'BD081C', ph:'username',                  url:v => `https://pinterest.com/${v}` },
+
+    // Messaging
+    { key:'wa', name:'WhatsApp',      icon:'whatsapp',    color:'25D366', ph:'+12025550123',              url:v => `https://wa.me/${v.replace(/[^0-9]/g, '')}` },
+    { key:'tg', name:'Telegram',      icon:'telegram',    color:'26A5E4', ph:'username',                  url:v => `https://t.me/${strip(v,'@')}` },
+    { key:'sg', name:'Signal',        icon:'signal',      color:'3A76F0', ph:'signal.me link or code',    url:v => /^https?:/.test(v) ? v : `https://signal.me/#p/${v}` },
+    { key:'dc', name:'Discord',       icon:'discord',     color:'5865F2', ph:'invite code or link',       url:v => /^https?:/.test(v) ? v : `https://discord.gg/${v}` },
+
+    // Gaming / streaming
+    { key:'tv', name:'Twitch',        icon:'twitch',      color:'9146FF', ph:'username',                  url:v => `https://twitch.tv/${v}` },
+    { key:'kk', name:'Kick',          icon:'kick',        color:'53FC18', ph:'username',                  url:v => `https://kick.com/${v}` },
+    { key:'sm', name:'Steam',         icon:'steam',       color:'000000', ph:'profile id',                url:v => `https://steamcommunity.com/id/${v}` },
+
+    // Music / audio
+    { key:'sp', name:'Spotify',       icon:'spotify',     color:'1DB954', ph:'profile URL or id',         url:v => /^https?:/.test(v) ? v : `https://open.spotify.com/user/${v}` },
+    { key:'am', name:'Apple Music',   icon:'applemusic',  color:'FA243C', ph:'profile URL',               url:v => /^https?:/.test(v) ? v : `https://music.apple.com/profile/${v}` },
+    { key:'sc', name:'SoundCloud',    icon:'soundcloud',  color:'FF7700', ph:'username',                  url:v => `https://soundcloud.com/${v}` },
+    { key:'bn', name:'Bandcamp',      icon:'bandcamp',    color:'408294', ph:'subdomain',                 url:v => /^https?:/.test(v) ? v : `https://${v}.bandcamp.com` },
+    { key:'lf', name:'Last.fm',       icon:'lastdotfm',   color:'D51007', ph:'username',                  url:v => `https://last.fm/user/${v}` },
+
+    // Creators / writing
+    { key:'rd', name:'Reddit',        icon:'reddit',      color:'FF4500', ph:'username',                  url:v => `https://reddit.com/user/${strip(strip(v,'u/'),'@')}` },
+    { key:'tu', name:'Tumblr',        icon:'tumblr',      color:'36465D', ph:'subdomain',                 url:v => /^https?:/.test(v) ? v : `https://${v}.tumblr.com` },
+    { key:'me', name:'Medium',        icon:'medium',      color:'000000', ph:'@username',                 url:v => `https://medium.com/@${strip(v,'@')}` },
+    { key:'ss', name:'Substack',      icon:'substack',    color:'FF6719', ph:'subdomain',                 url:v => /^https?:/.test(v) ? v : `https://${v}.substack.com` },
+
+    // Code
+    { key:'gh', name:'GitHub',        icon:'github',      color:'181717', ph:'username',                  url:v => `https://github.com/${v}` },
+    { key:'gl', name:'GitLab',        icon:'gitlab',      color:'FC6D26', ph:'username',                  url:v => `https://gitlab.com/${v}` },
+
+    // Visual / design
+    { key:'bh', name:'Behance',       icon:'behance',     color:'1769FF', ph:'username',                  url:v => `https://behance.net/${v}` },
+    { key:'dr', name:'Dribbble',      icon:'dribbble',    color:'EA4C89', ph:'username',                  url:v => `https://dribbble.com/${v}` },
+    { key:'da', name:'DeviantArt',    icon:'deviantart',  color:'05CC47', ph:'username',                  url:v => `https://${v}.deviantart.com` },
+    { key:'vm', name:'Vimeo',         icon:'vimeo',       color:'1AB7EA', ph:'username',                  url:v => `https://vimeo.com/${v}` },
+    { key:'fl', name:'Flickr',        icon:'flickr',      color:'0063DC', ph:'username',                  url:v => `https://flickr.com/people/${v}` },
+    { key:'vs', name:'VSCO',          icon:'vsco',        color:'000000', ph:'username',                  url:v => `https://vsco.co/${v}` },
+
+    // Lifestyle / niche
+    { key:'lb', name:'Letterboxd',    icon:'letterboxd',  color:'00B020', ph:'username',                  url:v => `https://letterboxd.com/${v}` },
+    { key:'gr', name:'Goodreads',     icon:'goodreads',   color:'372213', ph:'username',                  url:v => `https://goodreads.com/${v}` },
+    { key:'st', name:'Strava',        icon:'strava',      color:'FC4C02', ph:'athlete id',                url:v => `https://strava.com/athletes/${v}` },
+
+    // Fediverse / decentralized
+    { key:'bs', name:'Bluesky',       icon:'bluesky',     color:'0285FF', ph:'handle.bsky.social',        url:v => `https://bsky.app/profile/${strip(v,'@')}` },
+    { key:'mt', name:'Mastodon',      icon:'mastodon',    color:'6364FF', ph:'@user@instance',            url:v => {
+        if (/^https?:/.test(v)) return v;
+        const m = v.match(/^@?([^@]+)@(.+)$/);
+        return m ? `https://${m[2]}/@${m[1]}` : `https://mastodon.social/@${strip(v,'@')}`;
+      }
+    },
+
+    // Support / tipping
+    { key:'pa', name:'Patreon',       icon:'patreon',     color:'FF424D', ph:'username',                  url:v => `https://patreon.com/${v}` },
+    { key:'kf', name:'Ko-fi',         icon:'kofi',        color:'FF5E5B', ph:'username',                  url:v => `https://ko-fi.com/${v}` },
+    { key:'bc', name:'Buy Me a Coffee',icon:'buymeacoffee',color:'FFDD00',ph:'username',                  url:v => `https://buymeacoffee.com/${v}` },
+    { key:'pp', name:'PayPal.me',     icon:'paypal',      color:'00457C', ph:'username',                  url:v => `https://paypal.me/${v}` },
+    { key:'cv', name:'Cash App',      icon:'cashapp',     color:'00C244', ph:'$cashtag',                  url:v => `https://cash.app/${v.startsWith('$') ? v : '$' + v}` },
+    { key:'vn', name:'Venmo',         icon:'venmo',       color:'008CFF', ph:'@username',                 url:v => `https://venmo.com/${strip(v,'@')}` },
+
+    // Direct contact
+    { key:'em', name:'Email',         svg:SVG.mail,       color:'7851A9', ph:'you@example.com',           url:v => `mailto:${v}` },
+    { key:'ph', name:'Phone',         svg:SVG.phone,      color:'34A853', ph:'+12025550123',              url:v => `tel:${v.replace(/[^+0-9]/g, '')}` },
+    { key:'ws', name:'Website',       svg:SVG.globe,      color:'4285F4', ph:'https://example.com',       url:v => /^https?:/.test(v) ? v : `https://${v}` },
+    { key:'lk', name:'Custom link',   svg:SVG.link,       color:'7851A9', ph:'https://...',               url:v => /^https?:/.test(v) ? v : `https://${v}` },
+  ];
+
+  // Reserved (non-platform) param keys used by the page itself.
+  const RESERVED = new Set(['n']);
+
+  // ─── Routing: any query string with platform/name params → viewer ───
+  const params = new URLSearchParams(window.location.search);
+  const hasPayload = [...params.keys()].some(k => k === 'n' || PLATFORMS.some(p => p.key === k));
+
+  if (hasPayload) renderViewer(params);
+  else renderCreator();
+
+  // ─── Helpers ───────────────────────────────────────────────────
+  function el(tag, attrs = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') node.className = v;
+      else if (k === 'html') node.innerHTML = v;
+      else if (k === 'on') for (const [evt, fn] of Object.entries(v)) node.addEventListener(evt, fn);
+      else if (v != null) node.setAttribute(k, v);
+    }
+    for (const c of [].concat(children)) {
+      if (c == null || c === false) continue;
+      node.append(c.nodeType ? c : document.createTextNode(c));
+    }
+    return node;
+  }
+
+  function iconNode(p) {
+    if (p.svg) {
+      const wrap = el('span', { class: 'icon-svg', style: `color:#${p.color}` });
+      wrap.innerHTML = p.svg;
+      return wrap;
+    }
+    const img = el('img', {
+      src: `https://cdn.simpleicons.org/${p.icon}/${p.color}`,
+      alt: '',
+      loading: 'lazy',
+      width: 22,
+      height: 22,
+    });
+    img.onerror = () => { img.replaceWith(makeFallbackIcon(p)); };
+    return img;
+  }
+  function makeFallbackIcon(p) {
+    const span = el('span', { class: 'fallback', style: `color:#${p.color};font-weight:700;font-size:13px` }, p.name[0]);
+    return span;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // ─── Creator ───────────────────────────────────────────────────
+  function renderCreator() {
+    document.title = 'DOXA Social — share every link from one scan';
+    const app = document.getElementById('app');
+
+    const top = el('header', { class: 'top' }, [
+      el('div', { class: 'brand' }, [
+        el('span', { class: 'brand-mark' }, [
+          el('img', { src: 'logo.svg', alt: 'DOXA', width: '28', height: '28' }),
+        ]),
+        el('span', { class: 'brand-text' }, [
+          el('small', {}, 'DOXA'),
+          el('span', {}, 'Social'),
+        ]),
+      ]),
+      el('span', { class: 'pill' }, 'No accounts · No database'),
+    ]);
+
+    const layout = el('div', { class: 'layout' });
+    const leftCol = el('div', {});
+    const rightCol = el('aside', { class: 'preview-wrap' });
+
+    const heroTitle = el('h1', {});
+    heroTitle.innerHTML = 'One scan. <span class="accent">All your links.</span>';
+    leftCol.append(
+      el('div', { class: 'hero' }, [
+        heroTitle,
+        el('p', {}, 'Pick the platforms you use, type your handles, and share the QR. Everything lives in the URL — no signup, no database.'),
+      ])
+    );
+
+    // Card 1: name
+    const nameInput = el('input', {
+      class: 'input',
+      type: 'text',
+      maxlength: '60',
+      placeholder: 'e.g. Maya Chen',
+      value: '',
+    });
+    leftCol.append(
+      el('section', { class: 'card' }, [
+        el('h2', {}, 'Display name'),
+        el('div', { class: 'field' }, [
+          el('label', { for: 'displayName' }, 'How should the page greet visitors?'),
+          nameInput,
+        ]),
+      ])
+    );
+
+    // Card 2: platforms
+    const filterInput = el('input', {
+      class: 'input',
+      type: 'search',
+      placeholder: 'Search platforms…',
+    });
+    const countNode = el('span', { class: 'count' }, '0 active');
+    const platformsList = el('div', { class: 'platforms' });
+
+    const inputs = new Map();
+    for (const p of PLATFORMS) {
+      const input = el('input', {
+        class: 'platform-input',
+        type: 'text',
+        placeholder: p.ph,
+        spellcheck: 'false',
+        autocapitalize: 'off',
+        autocorrect: 'off',
+      });
+      inputs.set(p.key, input);
+
+      const row = el('div', { class: 'platform', 'data-name': p.name.toLowerCase() }, [
+        el('div', { class: 'platform-icon' }, [iconNode(p)]),
+        el('div', { class: 'platform-body' }, [
+          el('span', { class: 'platform-name' }, p.name),
+          input,
+        ]),
+      ]);
+      platformsList.append(row);
+
+      input.addEventListener('input', () => {
+        row.classList.toggle('active', input.value.trim() !== '');
+        update();
+      });
+    }
+    nameInput.addEventListener('input', update);
+
+    filterInput.addEventListener('input', () => {
+      const q = filterInput.value.trim().toLowerCase();
+      for (const row of platformsList.children) {
+        row.style.display = !q || row.dataset.name.includes(q) ? '' : 'none';
+      }
+    });
+
+    leftCol.append(
+      el('section', { class: 'card' }, [
+        el('h2', {}, 'Your links'),
+        el('div', { class: 'filter-bar' }, [filterInput, countNode]),
+        platformsList,
+      ])
+    );
+
+    // Right: QR + actions
+    const qrBox = el('div', { id: 'qr', html: '<div class="qr-empty">Add a link to generate your QR.</div>' });
+    const qrMeta = el('div', { class: 'qr-meta' });
+    const copyBtn = el('button', { class: 'btn', disabled: '' }, [
+      spanIcon(SVG.copy), 'Copy link',
+    ]);
+    const dlBtn = el('button', { class: 'btn primary', disabled: '' }, [
+      spanIcon(SVG.download), 'Download QR',
+    ]);
+    rightCol.append(
+      el('section', { class: 'card qr-card' }, [
+        qrBox,
+        qrMeta,
+        el('div', { class: 'actions' }, [copyBtn, dlBtn]),
+      ])
+    );
+
+    let qrInstance = null;
+    let currentUrl = '';
+
+    function buildUrl() {
+      const u = new URL(window.location.origin + window.location.pathname);
+      const name = nameInput.value.trim();
+      if (name) u.searchParams.set('n', name);
+      for (const p of PLATFORMS) {
+        const v = inputs.get(p.key).value.trim();
+        if (v) u.searchParams.set(p.key, v);
+      }
+      return u.toString();
+    }
+
+    function activeCount() {
+      let n = 0;
+      for (const p of PLATFORMS) if (inputs.get(p.key).value.trim()) n++;
+      return n;
+    }
+
+    function update() {
+      const count = activeCount();
+      countNode.textContent = `${count} active`;
+      const hasName = nameInput.value.trim() !== '';
+      if (count === 0 && !hasName) {
+        qrBox.innerHTML = '<div class="qr-empty">Add a link to generate your QR.</div>';
+        qrMeta.textContent = '';
+        copyBtn.disabled = true;
+        dlBtn.disabled = true;
+        qrInstance = null;
+        currentUrl = '';
+        return;
+      }
+      currentUrl = buildUrl();
+      qrBox.innerHTML = '';
+      qrInstance = new QRCode(qrBox, {
+        text: currentUrl,
+        width: 200,
+        height: 200,
+        colorDark: '#19003a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+      qrMeta.textContent = currentUrl;
+      copyBtn.disabled = false;
+      dlBtn.disabled = false;
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      if (!currentUrl) return;
+      try {
+        await navigator.clipboard.writeText(currentUrl);
+        showToast('Link copied');
+      } catch {
+        prompt('Copy your link:', currentUrl);
+      }
+    });
+
+    dlBtn.addEventListener('click', () => {
+      const canvas = qrBox.querySelector('canvas');
+      const img = qrBox.querySelector('img');
+      let dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
+      if (!dataUrl) return;
+      const a = document.createElement('a');
+      const slug = (nameInput.value.trim() || 'qr-card').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'qr-card';
+      a.href = dataUrl;
+      a.download = `${slug}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    layout.append(leftCol, rightCol);
+    app.append(top, layout);
+  }
+
+  function spanIcon(svg) {
+    const s = el('span', { 'aria-hidden': 'true', style: 'width:16px;height:16px;display:inline-block;color:currentColor' });
+    s.innerHTML = svg;
+    s.querySelector('svg').setAttribute('width', '16');
+    s.querySelector('svg').setAttribute('height', '16');
+    return s;
+  }
+
+  // ─── Viewer ────────────────────────────────────────────────────
+  function renderViewer(params) {
+    document.body.classList.add('viewer');
+    const name = (params.get('n') || '').trim();
+    document.title = name ? `${name} — DOXA Social` : 'DOXA Social';
+
+    const app = document.getElementById('app');
+    const wrap = el('div', { class: 'viewer-wrap' });
+
+    const initial = (name.match(/\p{L}|\p{N}/u)?.[0] || '·').toUpperCase();
+    wrap.append(
+      el('a', { class: 'viewer-brand', href: window.location.origin + window.location.pathname }, [
+        el('img', { src: 'logo.svg', alt: '', width: '18', height: '18' }),
+        el('span', {}, 'DOXA Social'),
+      ]),
+      el('div', { class: 'viewer-header' }, [
+        el('div', { class: 'avatar' }, initial),
+        el('h1', { class: 'viewer-name' }, name || 'My links'),
+        el('p', { class: 'viewer-tag' }, 'Tap any link below'),
+      ])
+    );
+
+    const links = el('div', { class: 'links' });
+    let count = 0;
+    for (const p of PLATFORMS) {
+      const raw = params.get(p.key);
+      if (!raw) continue;
+      const value = raw.trim();
+      if (!value) continue;
+      let href;
+      try { href = p.url(value); } catch { continue; }
+      if (!href) continue;
+      count++;
+      const handleNode = displayHandle(p, value);
+      const btn = el('a', {
+        class: 'link-btn',
+        href,
+        target: /^(mailto|tel):/.test(href) ? '_self' : '_blank',
+        rel: 'noopener noreferrer',
+      }, [
+        el('span', { class: 'link-icon' }, [iconNode(p)]),
+        el('span', { class: 'link-label' }, [
+          p.name,
+          handleNode ? el('span', { class: 'link-handle' }, handleNode) : null,
+        ]),
+        el('span', { class: 'arrow' }, '›'),
+      ]);
+      links.append(btn);
+    }
+
+    if (count === 0) {
+      links.append(el('div', { class: 'empty-viewer' }, 'This card has no links yet.'));
+    }
+    wrap.append(links);
+
+    wrap.append(
+      el('footer', { class: 'viewer-footer' }, [
+        'Made with ',
+        el('a', { href: window.location.origin + window.location.pathname }, 'DOXA Social'),
+      ])
+    );
+
+    app.append(wrap);
+  }
+
+  function displayHandle(p, value) {
+    if (p.key === 'em' || p.key === 'ph' || p.key === 'ws' || p.key === 'lk') return value;
+    if (/^https?:/.test(value)) return value;
+    const handles = ['ig','tt','yt','tw','th','tg','bs','mt','me','rd','vn'];
+    if (handles.includes(p.key)) return '@' + strip(value, '@');
+    return value;
+  }
+})();
+</script>
+</body>
+</html>
