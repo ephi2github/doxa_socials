@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 // Better Auth required tables (id/text everywhere — Better Auth uses string ids)
 export const user = sqliteTable('user', {
@@ -56,6 +56,26 @@ export const profile = sqliteTable('profile', {
   links: text('links', { mode: 'json' }).notNull().default('{}'),
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
 });
+
+export const profileSocialUniqueClick = sqliteTable(
+  'profileSocialUniqueClick',
+  {
+    id: text('id').primaryKey(),
+    profileUserId: text('profileUserId')
+      .notNull()
+      .references(() => profile.userId, { onDelete: 'cascade' }),
+    platformId: text('platformId').notNull(),
+    ipHash: text('ipHash').notNull(),
+    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
+  },
+  (table) => ({
+    profilePlatformIpUnique: uniqueIndex('profileSocialUniqueClick_profilePlatformIpUnique').on(
+      table.profileUserId,
+      table.platformId,
+      table.ipHash
+    ),
+  })
+);
 
 export type Profile = typeof profile.$inferSelect;
 export type LinksMap = Record<string, string>;
