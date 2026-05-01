@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #7851A9;
+  --secondary: #b277d3;
+  --accent: #19003a;
+  --bg: #19003a;
+  --card: #ffffff;
+  --text: #19003a;
+  --text-on-dark: #f5eefb;
+  --muted: #6b5f7e;
+  --muted-on-dark: #b8a8d4;
+  --border: #ece4f5;
+  --border-on-dark: rgba(255, 255, 255, 0.12);
+  --radius: 14px;
+  --radius-lg: 22px;
+}
+
+body {
+  color: var(--text-on-dark);
+  font-family: var(--font-georama), sans-serif;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-[var(--radius-lg)] shadow-xl;
+  }
+  
+  .white-card {
+    @apply bg-white text-[var(--text)] rounded-[var(--radius-lg)] shadow-2xl border border-[var(--border)];
+  }
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white font-bold py-3 px-6 rounded-full shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all;
+  }
+}
+
+.accent-text {
+  background: linear-gradient(90deg, #fff 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
