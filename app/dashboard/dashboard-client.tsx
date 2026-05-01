@@ -98,28 +98,46 @@ export default function DashboardClient({ initialProfile, user }: { initialProfi
             
             <div className="space-y-4 mb-8">
               {activePlatforms.map(p => (
-                <div key={p.id} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                    <PlatformIcon id={p.id} size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted">{p.name}</label>
-                    <div className="flex items-center">
-                      <input 
-                        type="text"
-                        className="bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold w-full"
-                        value={links[p.id]}
-                        onChange={e => updateHandle(p.id, e.target.value)}
-                        placeholder={p.ph}
-                      />
+                <div
+                  key={p.id}
+                  className="group rounded-[24px] border border-[var(--border)] bg-gradient-to-br from-slate-50 via-white to-slate-50/80 p-4 shadow-[0_12px_32px_rgba(25,0,58,0.05)] transition-all hover:border-primary/20 hover:shadow-[0_18px_40px_rgba(25,0,58,0.08)]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white bg-white shadow-sm shadow-primary/5">
+                      <PlatformIcon id={p.id} size={24} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+                          {p.name}
+                        </label>
+
+                        <button
+                          onClick={() => togglePlatform(p.id)}
+                          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-300 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                          aria-label={`Remove ${p.name}`}
+                        >
+                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
+                        <input
+                          type="text"
+                          className="w-full border-none bg-transparent p-0 text-sm font-semibold text-accent placeholder:font-medium placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                          value={links[p.id]}
+                          onChange={e => updateHandle(p.id, e.target.value)}
+                          placeholder={p.ph}
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => togglePlatform(p.id)}
-                    className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                  >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
                 </div>
               ))}
               {activePlatforms.length === 0 && (
