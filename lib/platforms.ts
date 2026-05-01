@@ -166,4 +166,10 @@ export function matchesPlatformSearch(platform: Platform, query: string): boolea
   );
 }
 
+const PLATFORM_MAP = new Map(PLATFORMS.map((platform) => [platform.id, platform]));
+
 export const PLATFORM_KEYS = new Set(PLATFORMS.map(p => p.id));
+
+export function getPlatformById(id: string): Platform | undefined {
+  return PLATFORM_MAP.get(id);
+}

@@ -62,11 +62,11 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       <div className="space-y-4">
         {activePlatforms.map(p => {
           const handle = links[p.id];
-          const url = p.url(handle);
+          const trackedUrl = `/u/${publicId}/${p.id}`;
           return (
             <a 
               key={p.id}
-              href={url}
+              href={trackedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl border border-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group"

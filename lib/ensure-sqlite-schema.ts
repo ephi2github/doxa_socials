@@ -59,5 +59,15 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
       "updatedAt" integer NOT NULL,
       FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE cascade
     );
+
+    CREATE TABLE IF NOT EXISTS "profileSocialUniqueClick" (
+      "id" text PRIMARY KEY NOT NULL,
+      "profileUserId" text NOT NULL,
+      "platformId" text NOT NULL,
+      "ipHash" text NOT NULL,
+      "createdAt" integer NOT NULL,
+      FOREIGN KEY ("profileUserId") REFERENCES "profile"("userId") ON DELETE cascade,
+      UNIQUE ("profileUserId", "platformId", "ipHash")
+    );
   `);
 }
