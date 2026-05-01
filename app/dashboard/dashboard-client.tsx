@@ -1,24 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { PLATFORMS } from "@/lib/platforms";
+import { useRef, useState } from "react";
+import { matchesPlatformSearch, PLATFORMS } from "@/lib/platforms";
 import PlatformIcon from "@/components/platform-icon";
 import QRPreview from "@/components/qr-preview";
+import { useToast } from "@/components/toast-provider";
 import Image from "next/image";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
 export default function DashboardClient({ initialProfile, user }: { initialProfile: any, user: any }) {
   const [displayName, setDisplayName] = useState(initialProfile.displayName || user.name || "");
+  const [photoUrl, setPhotoUrl] = useState<string>(initialProfile.photoUrl || "");
   const [links, setLinks] = useState<Record<string, string>>(initialProfile.links || {});
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [search, setSearch] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
+  const toast = useToast();
+  const initials = (displayName || user.name || "·").match(/\p{L}|\p{N}/u)?.[0]?.toUpperCase() || "·";
 
   const activePlatforms = PLATFORMS.filter(p => links[p.id] !== undefined);
   const availablePlatforms = PLATFORMS.filter(p => 
     links[p.id] === undefined && 
-    p.name.toLowerCase().includes(search.toLowerCase())
+    matchesPlatformSearch(p, search)
   );
 
   const togglePlatform = (id: string) => {
@@ -43,19 +51,99 @@ export default function DashboardClient({ initialProfile, user }: { initialProfi
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName, links }),
+        body: JSON.stringify({ displayName, photoUrl: photoUrl || null, links }),
       });
       if (res.ok) {
-        alert("Profile updated!");
+        toast.success("Profile updated", "Your public page now reflects the latest changes.");
+      } else {
+        const payload = await res.json().catch(() => null);
+        toast.error("Save failed", payload?.error || "Could not update your profile.");
       }
-    } catch (err) {
-      alert("Failed to save");
+    } catch (_err) {
+      toast.error("Save failed", "Something went wrong while saving your profile.");
     } finally {
       setSaving(false);
     }
   };
 
+  const openPhotoPicker = () => {
+    if (uploadingPhoto) return;
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Invalid file", "Please choose an image file.");
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error("Image too large", "Profile pictures must be 10 MB or smaller.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    try {
+      const signRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+
+      const signPayload = await signRes.json().catch(() => null);
+
+      if (!signRes.ok || !signPayload?.signedUrl || !signPayload?.publicUrl) {
+        toast.error("Upload failed", signPayload?.error || "Could not start the upload.");
+        return;
+      }
+
+      const uploadRes = await fetch(signPayload.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        toast.error("Upload failed", "The image could not be sent to storage.");
+        return;
+      }
+
+      setPhotoUrl(signPayload.publicUrl);
+      toast.success("Photo uploaded", "Save your profile to publish the new picture.");
+    } catch (_err) {
+      toast.error("Upload failed", "Something went wrong while uploading the image.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = () => {
+    if (!photoUrl) return;
+    setPhotoUrl("");
+    toast.info("Photo removed", "Save your profile to remove the current picture.");
+  };
+
   const publicUrl = `${window.location.origin}/u/${initialProfile.publicId}`;
+
+  const copyPublicUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      toast.success("Link copied", "Your public DOXA Social URL is on the clipboard.");
+    } catch (_err) {
+      toast.error("Copy failed", "The public link could not be copied.");
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -81,15 +169,71 @@ export default function DashboardClient({ initialProfile, user }: { initialProfi
         <div className="space-y-8">
           <section className="white-card p-6">
             <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-6">Profile Info</h2>
-            <div>
-              <label className="block text-sm font-bold text-muted mb-2">Display Name</label>
-              <input 
-                type="text"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="How you want to be seen"
-              />
+            <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+              <div className="rounded-[28px] border border-[var(--border)] bg-gradient-to-br from-slate-50 via-white to-slate-50/80 p-5 shadow-[0_12px_30px_rgba(25,0,58,0.05)]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-4">Profile Photo</p>
+
+                <div className="mb-4 flex justify-center">
+                  <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-secondary text-3xl font-extrabold text-white shadow-xl shadow-primary/20 ring-4 ring-white/70">
+                    {photoUrl ? (
+                      <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-center text-sm font-semibold text-accent mb-1">
+                  {photoUrl ? "Photo ready" : "No photo uploaded"}
+                </p>
+                <p className="text-center text-xs text-muted mb-5">
+                  One image at a time. JPG, PNG, or WebP up to 10 MB.
+                </p>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                  className="hidden"
+                  onChange={handlePhotoSelected}
+                />
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={openPhotoPicker}
+                    disabled={uploadingPhoto}
+                    className="w-full rounded-full bg-[var(--primary)] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {uploadingPhoto ? "Uploading..." : photoUrl ? "Replace Photo" : "Upload Photo"}
+                  </button>
+
+                  {photoUrl ? (
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      disabled={uploadingPhoto}
+                      className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-muted transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Remove Photo
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-muted mb-2">Display Name</label>
+                <input 
+                  type="text"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  placeholder="How you want to be seen"
+                />
+                <p className="mt-3 text-sm text-muted">
+                  This is the name that appears on your public DOXA Social page and alongside your profile photo.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -156,27 +300,46 @@ export default function DashboardClient({ initialProfile, user }: { initialProfi
                 />
                 <svg className="absolute left-3 top-2.5 text-slate-400" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {availablePlatforms.slice(0, 15).map(p => (
-                  <button 
-                    key={p.id}
-                    onClick={() => togglePlatform(p.id)}
-                    className="flex items-center gap-2 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 rounded-xl px-3 py-2 transition-all group"
+              <div className="mb-4 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                <span>{availablePlatforms.length} supported platforms available</span>
+                {search.trim() ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] tracking-[0.2em] text-secondary transition-colors hover:border-primary/20 hover:text-primary"
                   >
-                    <PlatformIcon id={p.id} size={16} className="opacity-60 group-hover:opacity-100" />
-                    <span className="text-sm font-semibold text-muted group-hover:text-accent">{p.name}</span>
+                    Clear search
                   </button>
-                ))}
+                ) : null}
+              </div>
+              <div className="max-h-[30rem] overflow-y-auto pr-1">
+                <div className="flex flex-wrap gap-2">
+                  {availablePlatforms.map(p => (
+                    <button 
+                      key={p.id}
+                      onClick={() => togglePlatform(p.id)}
+                      className="flex items-center gap-2 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-100 rounded-xl px-3 py-2 transition-all group"
+                    >
+                      <PlatformIcon id={p.id} size={16} className="opacity-60 group-hover:opacity-100" />
+                      <span className="text-sm font-semibold text-muted group-hover:text-accent">{p.name}</span>
+                    </button>
+                  ))}
+                  {availablePlatforms.length === 0 ? (
+                    <div className="w-full rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-muted">
+                      No platforms match your search.
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>
 
           <button 
             onClick={save}
-            disabled={saving}
+            disabled={saving || uploadingPhoto}
             className="w-full btn-primary disabled:opacity-50"
           >
-            {saving ? "Saving Changes..." : "Save Profile"}
+            {uploadingPhoto ? "Finish Uploading Photo..." : saving ? "Saving Changes..." : "Save Profile"}
           </button>
         </div>
 
@@ -189,7 +352,7 @@ export default function DashboardClient({ initialProfile, user }: { initialProfi
               <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
                 <code className="text-[10px] truncate opacity-80">{publicUrl}</code>
                 <button 
-                  onClick={() => { navigator.clipboard.writeText(publicUrl); alert('Copied!'); }}
+                  onClick={copyPublicUrl}
                   className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>

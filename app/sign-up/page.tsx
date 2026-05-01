@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signUp } from "@/lib/auth-client";
+import { useToast } from "@/components/toast-provider";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ export default function SignUp() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ export default function SignUp() {
       callbackURL: "/dashboard",
     });
     if (error) {
-      alert(error.message);
+      toast.error("Sign-up failed", error.message);
       setLoading(false);
     } else {
       router.push("/dashboard");

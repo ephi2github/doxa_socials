@@ -6,9 +6,10 @@ import QRCode from "qrcode";
 interface QRPreviewProps {
   value: string;
   size?: number;
+  showDownload?: boolean;
 }
 
-export default function QRPreview({ value, size = 200 }: QRPreviewProps) {
+export default function QRPreview({ value, size = 200, showDownload = true }: QRPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -38,12 +39,14 @@ export default function QRPreview({ value, size = 200 }: QRPreviewProps) {
       <div className="bg-white p-4 rounded-3xl shadow-xl">
         <canvas ref={canvasRef} />
       </div>
-      <button 
-        onClick={download}
-        className="text-xs font-bold uppercase tracking-wider text-muted hover:text-primary transition-colors"
-      >
-        Download PNG
-      </button>
+      {showDownload ? (
+        <button 
+          onClick={download}
+          className="text-xs font-bold uppercase tracking-wider text-muted hover:text-primary transition-colors"
+        >
+          Download PNG
+        </button>
+      ) : null}
     </div>
   );
 }
