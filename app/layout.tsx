@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${georama.variable} font-sans antialiased min-h-screen`}>
+      <body className={`${georama.variable} min-h-screen overflow-x-hidden font-sans antialiased`}>
         <ToastProvider>
           <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#19003a] via-[#2a0d5e] to-[#3d1487]" />

@@ -35,9 +35,9 @@ export default function QRPreview({ value, size = 200, showDownload = true }: QR
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="bg-white p-4 rounded-3xl shadow-xl">
-        <canvas ref={canvasRef} />
+    <div className="flex w-full flex-col items-center gap-4">
+      <div className="w-full max-w-[184px] rounded-[28px] bg-white p-3 shadow-xl sm:max-w-[232px] sm:rounded-3xl sm:p-4">
+        <canvas ref={canvasRef} className="h-auto w-full max-w-full" />
       </div>
       {showDownload ? (
         <button 

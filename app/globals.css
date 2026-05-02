@@ -21,6 +21,11 @@
 body {
   color: var(--text-on-dark);
   font-family: var(--font-georama), sans-serif;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 @layer components {
