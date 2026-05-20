@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { matchesPlatformSearch, PLATFORMS } from "@/lib/platforms";
 import PlatformIcon from "@/components/platform-icon";
 import QRPreview from "@/components/qr-preview";
@@ -25,10 +25,12 @@ export default function DashboardClient({
   const [displayName, setDisplayName] = useState(initialProfile.displayName || user.name || "");
   const [photoUrl, setPhotoUrl] = useState<string>(initialProfile.photoUrl || "");
   const [links, setLinks] = useState<Record<string, string>>(initialProfile.links || {});
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isFirstRender = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
   const router = useRouter();
   const toast = useToast();
   const initials = (displayName || user.name || "·").match(/\p{L}|\p{N}/u)?.[0]?.toUpperCase() || "·";
@@ -56,26 +58,39 @@ export default function DashboardClient({
     setLinks(prev => ({ ...prev, [id]: value }));
   };
 
-  const save = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName, photoUrl: photoUrl || null, links }),
-      });
-      if (res.ok) {
-        toast.success("Profile updated", "Your public page now reflects the latest changes.");
-      } else {
-        const payload = await res.json().catch(() => null);
-        toast.error("Save failed", payload?.error || "Could not update your profile.");
-      }
-    } catch (_err) {
-      toast.error("Save failed", "Something went wrong while saving your profile.");
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    // Skip the initial mount — the form was just hydrated with server state.
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  };
+    // Don't auto-save while a photo upload is in flight; wait for photoUrl to settle.
+    if (uploadingPhoto) return;
+
+    const timer = setTimeout(async () => {
+      // Cancel any earlier in-flight save so the latest payload wins.
+      abortRef.current?.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+
+      setStatus("saving");
+      try {
+        const res = await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ displayName, photoUrl: photoUrl || null, links }),
+          signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setStatus("saved");
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return; // superseded — ignore
+        setStatus("error");
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [displayName, photoUrl, links, uploadingPhoto]);
 
   const openPhotoPicker = () => {
     if (uploadingPhoto) return;
@@ -131,7 +146,7 @@ export default function DashboardClient({
       }
 
       setPhotoUrl(signPayload.publicUrl);
-      toast.success("Photo uploaded", "Save your profile to publish the new picture.");
+      toast.success("Photo uploaded", "Your new picture saves automatically.");
     } catch (_err) {
       toast.error("Upload failed", "Something went wrong while uploading the image.");
     } finally {
@@ -142,7 +157,7 @@ export default function DashboardClient({
   const removePhoto = () => {
     if (!photoUrl) return;
     setPhotoUrl("");
-    toast.info("Photo removed", "Save your profile to remove the current picture.");
+    toast.info("Photo removed", "Your change saves automatically.");
   };
 
   const publicUrl = `${window.location.origin}/u/${initialProfile.publicId}`;
@@ -168,12 +183,37 @@ export default function DashboardClient({
             <span>Social</span>
           </div>
         </div>
-        <button 
-          onClick={() => signOut({ fetchOptions: { onSuccess: () => router.push("/") } })}
-          className="self-start text-sm font-bold opacity-60 transition-opacity hover:opacity-100 sm:self-auto"
-        >
-          Sign Out
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div
+            aria-live="polite"
+            className={
+              "text-[11px] font-bold uppercase tracking-[0.18em] px-3 py-1.5 rounded-full border transition-colors " +
+              (status === "saving"
+                ? "border-white/15 bg-white/5 text-white/80"
+                : status === "saved"
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                : status === "error"
+                ? "border-rose-400/30 bg-rose-400/10 text-rose-300"
+                : "border-white/10 bg-white/5 text-white/45")
+            }
+          >
+            {uploadingPhoto
+              ? "Uploading photo…"
+              : status === "saving"
+              ? "Saving…"
+              : status === "saved"
+              ? "Saved"
+              : status === "error"
+              ? "Save failed"
+              : "All changes saved"}
+          </div>
+          <button
+            onClick={() => signOut({ fetchOptions: { onSuccess: () => router.push("/") } })}
+            className="text-sm font-bold opacity-60 transition-opacity hover:opacity-100"
+          >
+            Sign Out
+          </button>
+        </div>
       </header>
 
       <section className="glass-card mb-6 overflow-hidden p-4 py-6 sm:p-4 lg:hidden">
@@ -410,14 +450,6 @@ export default function DashboardClient({
               </div>
             </div>
           </section>
-
-          <button 
-            onClick={save}
-            disabled={saving || uploadingPhoto}
-            className="w-full btn-primary disabled:opacity-50"
-          >
-            {uploadingPhoto ? "Finish Uploading Photo..." : saving ? "Saving Changes..." : "Save Profile"}
-          </button>
         </div>
 
         <aside className="hidden min-w-0 space-y-4 lg:block lg:sticky lg:top-10 lg:space-y-6">

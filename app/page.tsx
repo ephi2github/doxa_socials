@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import QRPreview from "@/components/qr-preview";
@@ -10,10 +9,6 @@ export default async function Home() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-
-  if (session) {
-    redirect("/dashboard");
-  }
 
   const previewLinks = [
     { id: "ig", label: "Instagram" },
@@ -55,12 +50,25 @@ export default async function Home() {
             <span>Social</span>
           </div>
         </div>
-        <Link
-          href="/sign-in"
-          className="bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 px-4 py-2 rounded-full text-sm font-semibold transition-all"
-        >
-          Sign in
-        </Link>
+        {session ? (
+          <Link
+            href="/dashboard"
+            className="bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Edit your card
+          </Link>
+        ) : (
+          <Link
+            href="/sign-in"
+            className="bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+          >
+            Sign in
+          </Link>
+        )}
       </header>
 
       <main className="space-y-24">
@@ -146,6 +154,17 @@ export default async function Home() {
               </div>
             ))}
           </div>
+
+          {!session && (
+            <div className="flex justify-center pt-2">
+              <Link
+                href="/sign-up"
+                className="bg-white text-black hover:bg-white/90 px-5 py-2.5 rounded-full text-sm font-semibold transition-all"
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
         </section>
 
         <section className="space-y-8">
@@ -154,7 +173,7 @@ export default async function Home() {
               Works with everything
             </p>
             <h2 className="text-3xl md:text-4xl font-extrabold">
-              50+ platforms, one card.
+              90+ platforms, one card.
             </h2>
           </div>
 
