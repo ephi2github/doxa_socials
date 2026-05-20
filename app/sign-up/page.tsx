@@ -40,7 +40,7 @@ export default function SignUp() {
             <Image src="/logo.svg" alt="DOXA" width={32} height={32} />
           </div>
           <h1 className="text-2xl font-extrabold">Create your account</h1>
-          <p className="text-muted text-sm">Join DOXA Social today</p>
+          <p className="text-muted text-sm">Join DOXA Socials today</p>
         </div>
 
         <form onSubmit={handleSignUp} className="space-y-4">

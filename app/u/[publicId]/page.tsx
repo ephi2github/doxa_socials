@@ -44,7 +44,7 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-on-dark mb-8">
            <Image src="/logo.svg" alt="" width={16} height={16} />
-           DOXA Social
+           DOXA Socials
         </div>
 
         <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white shadow-2xl shadow-primary/40 ring-4 ring-white/10 mb-6">
@@ -87,9 +87,9 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       </div>
 
       <footer className="mt-16 text-center">
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity">
-          Made with 
-          <span className="text-white">DOXA Social</span>
+        <Link href="https://doxaplc.com" className="inline-flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity">
+          Made by
+          <span className="text-white">DOXA Innovations</span>
           <div className="w-4 h-4 invert opacity-80">
             <Image src="/logo.svg" alt="" width={16} height={16} />
           </div>

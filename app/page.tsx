@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import QRPreview from "@/components/qr-preview";
+import PlatformIcon from "@/components/platform-icon";
 
 export default async function Home() {
   const session = await auth.api.getSession({
@@ -14,63 +15,37 @@ export default async function Home() {
     redirect("/dashboard");
   }
 
-  const highlights = [
-    {
-      title: "One public link",
-      description: "Send one clean URL instead of repeating usernames and profile links everywhere.",
-    },
-    {
-      title: "A QR that stays usable",
-      description: "Print or share the same QR once, then keep updating the destinations behind it.",
-    },
-    {
-      title: "Photo, name, and socials",
-      description: "Present yourself with a profile picture, display name, and only the platforms you want to show.",
-    },
+  const previewLinks = [
+    { id: "ig", label: "Instagram" },
+    { id: "tt", label: "TikTok" },
+    { id: "li", label: "LinkedIn" },
+    { id: "sp", label: "Spotify" },
+    { id: "wa", label: "WhatsApp" },
   ];
+
+  const platformStrip = ["ig", "tt", "yt", "tw", "li", "sp", "wa", "tg", "tv", "fb", "th", "pi"];
 
   const steps = [
     {
-      number: "01",
-      title: "Create your profile",
-      description: "Set the display name people should see and upload a profile photo for your public DOXA page.",
+      n: "1",
+      title: "Sign up",
+      copy: "Make a free account in seconds.",
     },
     {
-      number: "02",
-      title: "Add your platforms",
-      description: "Drop in handles for TikTok, X, LinkedIn, WhatsApp, Spotify, and more.",
+      n: "2",
+      title: "Add your links",
+      copy: "Pick the platforms you actually use.",
     },
     {
-      number: "03",
-      title: "Share one card everywhere",
-      description: "Use the public link or QR code online, on print, at events, or in your bio.",
+      n: "3",
+      title: "Share one QR",
+      copy: "Print it, post it, tape it on anything.",
     },
-  ];
-
-  const useCases = [
-    {
-      title: "Creators and public figures",
-      description: "Share every active profile from one polished page instead of sending people to search for you.",
-    },
-    {
-      title: "Consultants and professionals",
-      description: "Turn a QR on your card, desk, or presentation into a clean directory of your key channels.",
-    },
-    {
-      title: "Events, campaigns, and teams",
-      description: "Use one destination that can be updated as links, priorities, and campaigns change over time.",
-    },
-  ];
-
-  const companyPoints = [
-    "Built by Doxa Innovations PLC as a practical digital identity tool.",
-    "Designed to make online discovery cleaner, faster, and easier to maintain.",
-    "Flexible enough for personal brands, businesses, and campaign-focused sharing.",
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pt-10 pb-24">
-      <header className="flex items-center justify-between mb-16">
+    <div className="max-w-6xl mx-auto px-6 pt-8 pb-20">
+      <header className="flex items-center justify-between mb-14">
         <div className="flex items-center gap-3 font-extrabold text-xl">
           <div className="w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center overflow-hidden">
             <Image src="/logo.svg" alt="DOXA" width={28} height={28} />
@@ -80,216 +55,147 @@ export default async function Home() {
             <span>Social</span>
           </div>
         </div>
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text-sm font-semibold">
-          By Doxa Innovations PLC
-        </div>
+        <Link
+          href="/sign-in"
+          className="bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+        >
+          Sign in
+        </Link>
       </header>
 
-      <main className="space-y-16">
-        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center">
+      <main className="space-y-24">
+        <section className="grid lg:grid-cols-[1fr_0.85fr] gap-12 lg:gap-16 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-secondary mb-6">
-              Doxa Innovations PLC presents DOXA Social
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] tracking-tight mb-6">
-              A real homepage
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-5">
+              All your links.
               <br />
-              <span className="accent-text">for your digital presence.</span>
+              <span className="accent-text">One scan.</span>
             </h1>
 
-            <p className="text-lg text-muted-on-dark mb-8 max-w-2xl">
-              DOXA Social is a shareable social profile and QR experience from Doxa Innovations PLC.
-              It gives individuals, brands, and teams one public destination for their most important
-              platforms, profile photo, and identity details, so people can find the right links fast
-              and you can update them anytime.
+            <p className="text-lg text-muted-on-dark mb-8 max-w-md">
+              A single QR for every place you exist online. Change what&apos;s behind it whenever you want.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/sign-up" className="btn-primary text-center">
-                Create Your Page
+                Create your page
               </Link>
               <Link
-                href="#about"
-                className="bg-white/10 hover:bg-white/20 border border-white/20 py-3 px-8 rounded-full font-bold text-center transition-all"
+                href="#how"
+                className="bg-white/5 hover:bg-white/10 border border-white/15 py-3 px-6 rounded-full font-semibold text-center transition-all"
               >
-                Learn More
+                See how it works
               </Link>
-            </div>
-
-            <p className="text-sm text-muted-on-dark/80 mb-8 max-w-xl">
-              Built for landing, discovery, and sharing. Use it as the page behind your QR code,
-              your bio link, your campaign handoff, or your public social card with a real profile
-              picture and branded presence.
-            </p>
-
-            <div className="grid sm:grid-cols-3 gap-3">
-              {highlights.map((item) => (
-                <div key={item.title} className="glass-card p-4">
-                  <p className="text-sm font-bold text-white mb-1">{item.title}</p>
-                  <p className="text-sm text-muted-on-dark">{item.description}</p>
-                </div>
-              ))}
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 rounded-[44px] bg-primary/20 blur-3xl" />
-            <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl shadow-2xl">
-              <div className="grid gap-5">
-                <div className="white-card p-5">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary mb-2">
-                        Public Profile
-                      </p>
-                      <h2 className="text-2xl font-extrabold leading-tight">cornelius.d</h2>
-                    </div>
-                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center font-extrabold">
-                      C
-                    </div>
-                  </div>
+          <div className="relative mx-auto w-full max-w-[340px]">
+            <div className="absolute -inset-10 rounded-[60px] bg-primary/25 blur-3xl" />
+            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-secondary/30 blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-primary/30 blur-3xl" />
 
-                  <div className="space-y-3">
-                    {["TikTok", "LinkedIn", "WhatsApp"].map((label) => (
-                      <div
-                        key={label}
-                        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-                      >
-                        <span className="font-semibold text-accent">{label}</span>
-                        <span className="text-slate-400">open</span>
-                      </div>
-                    ))}
-                  </div>
+            <div className="relative rounded-[40px] border border-white/15 bg-gradient-to-b from-white/15 to-white/5 p-4 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(120,81,169,0.6)]">
+              <div className="rounded-[28px] bg-gradient-to-b from-[#1f0747] to-[#2e0d5e] p-6 text-center">
+                <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-on-dark mb-6">
+                  <Image src="/logo.svg" alt="" width={14} height={14} />
+                  DOXA Socials
                 </div>
 
-                <div className="grid sm:grid-cols-[1.05fr_0.95fr] gap-5">
-                  <div className="white-card p-5">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary mb-4">
-                      Editor
-                    </p>
-                    <div className="space-y-3">
-                      {["x / twitter", "linkedin", "spotify"].map((label) => (
-                        <div key={label} className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted mb-2">
-                            {label}
-                          </p>
-                          <div className="h-3 rounded-full bg-slate-100" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-white shadow-2xl shadow-primary/50 ring-4 ring-white/10 mb-4">
+                  A
+                </div>
 
-                  <div className="glass-card p-5 text-center">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-secondary mb-4">
-                      Live QR
-                    </p>
-                    <div className="mb-4">
-                      <QRPreview value="https://socials.doxaplc.com" size={170} showDownload={false} />
+                <h3 className="text-xl font-extrabold mb-6">Alex Carter</h3>
+
+                <div className="space-y-2.5 text-left">
+                  {previewLinks.map((l) => (
+                    <div
+                      key={l.id}
+                      className="flex items-center gap-3 bg-white/95 px-3.5 py-2.5 rounded-xl shadow-lg"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                        <PlatformIcon id={l.id} size={18} />
+                      </div>
+                      <span className="text-sm font-bold text-accent">{l.label}</span>
                     </div>
-                    <p className="text-sm text-muted-on-dark">
-                      Update your destinations without replacing the code.
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="about" className="white-card p-8 md:p-10">
-          <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-start">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary mb-3">
-                About The Product
-              </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-accent mb-4">
-                DOXA Social is more than a QR tool.
-              </h2>
-              <p className="text-base text-muted max-w-xl">
-                It works as a proper landing page for your online identity. Instead of leaving people
-                to jump across disconnected profiles, it gives them one focused place to understand
-                who you are, what you look like, where to find you, and which channels matter most.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              {steps.map((step) => (
-                <div key={step.number} className="rounded-[28px] border border-[var(--border)] bg-slate-50 p-5">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary mb-4">
-                    {step.number}
-                  </p>
-                  <h3 className="text-lg font-extrabold text-accent mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted">{step.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="grid lg:grid-cols-[0.95fr_1.05fr] gap-8">
-          <div className="glass-card p-8 md:p-10">
+        <section id="how" className="space-y-10">
+          <div className="text-center max-w-xl mx-auto">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-secondary mb-3">
-              Doxa Innovations PLC
+              How it works
             </p>
-            <h2 className="text-3xl font-extrabold mb-4">
-              A product shaped around clarity, access, and better digital handoffs.
-            </h2>
-            <p className="text-muted-on-dark mb-6">
-              Doxa Innovations PLC is positioning DOXA Social as a practical tool for modern identity
-              sharing: something simple enough to use instantly, but strong enough to support
-              professional, brand, and campaign use cases.
-            </p>
-            <div className="space-y-3">
-              {companyPoints.map((point) => (
-                <div key={point} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                  <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-secondary" />
-                  <p className="text-sm text-muted-on-dark">{point}</p>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold">Three steps. That&apos;s it.</h2>
           </div>
 
-          <div className="white-card p-8 md:p-10">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary mb-3">
-              Who It Helps
-            </p>
-            <h2 className="text-3xl font-extrabold text-accent mb-6">
-              Useful wherever one smart public page beats many scattered links.
-            </h2>
-            <div className="grid gap-4">
-              {useCases.map((item) => (
-                <div key={item.title} className="rounded-[26px] border border-[var(--border)] bg-slate-50 p-5">
-                  <h3 className="text-lg font-extrabold text-accent mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted">{item.description}</p>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {steps.map((s) => (
+              <div key={s.n} className="relative">
+                <div className="absolute -top-6 -left-2 text-[120px] font-extrabold text-white/5 leading-none select-none">
+                  {s.n}
                 </div>
-              ))}
-            </div>
+                <div className="relative">
+                  <h3 className="text-xl font-extrabold mb-2">{s.title}</h3>
+                  <p className="text-muted-on-dark">{s.copy}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
-        <section className="glass-card p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <section className="space-y-8">
+          <div className="text-center max-w-xl mx-auto">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-secondary mb-3">
+              Works with everything
+            </p>
+            <h2 className="text-3xl md:text-4xl font-extrabold">
+              50+ platforms, one card.
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-2xl mx-auto">
+            {platformStrip.map((id) => (
+              <div
+                key={id}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/95 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              >
+                <PlatformIcon id={id} size={26} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid md:grid-cols-[1fr_auto] gap-8 items-center bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-[40px] p-8 md:p-12">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-secondary mb-3">
-              Landing And Additional Info
-            </p>
-            <h2 className="text-3xl font-extrabold mb-3">
-              Use the homepage to explain the product, and the profile page to drive action.
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-3">
+              Your QR never changes.
             </h2>
-            <p className="text-muted-on-dark max-w-2xl">
-              DOXA Social can introduce the product as a Doxa Innovations PLC offering while still
-              giving each user their own focused public destination for scanning, tapping, and
-              connecting.
+            <p className="text-muted-on-dark mb-6 max-w-md">
+              Update your links, photo, and name anytime. Same scan, fresh page.
             </p>
+            <Link href="/sign-up" className="btn-primary inline-block">
+              Get started — it&apos;s free
+            </Link>
           </div>
-
-          <Link href="/sign-up" className="btn-primary text-center whitespace-nowrap">
-            Start Building
-          </Link>
+          <div className="hidden md:block">
+            <QRPreview value="https://socials.doxaplc.com" size={160} showDownload={false} />
+          </div>
         </section>
 
-        <footer className="pt-2 text-center text-sm text-muted-on-dark/75">
-          <p>DOXA Social is a product by Doxa Innovations PLC.</p>
+        <footer className="pt-4 text-center">
+          <Link
+            href="https://doxaplc.com"
+            className="inline-flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"
+          >
+            Made by
+            <span className="text-white">DOXA Innovations</span>
+            <Image src="/logo.svg" alt="" width={16} height={16} className="opacity-80" />
+          </Link>
         </footer>
       </main>
     </div>
