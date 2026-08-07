@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { recordProfileView } from "@/lib/profile-views";
 import { profile } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -20,11 +21,19 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
     notFound();
   }
 
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   const isOwner = session?.user.id === userProfile.userId;
+
+  await recordProfileView({
+    profileUserId: userProfile.userId,
+    headers: requestHeaders,
+    isOwner,
+  });
+
   const links = (userProfile.links || {}) as Record<string, string>;
   const activePlatforms = PLATFORMS.filter(p => links[p.id]);
 

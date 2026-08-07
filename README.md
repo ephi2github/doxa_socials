@@ -46,7 +46,8 @@ It is designed for creators, consultants, event teams, businesses, and campaigns
 - **Profile photo upload**: optional hosted image support through Cloudflare R2.
 - **Private dashboard**: manage links, display name, and photo from one place.
 - **Owner-only analytics**: every social link records unique clicks by IP hash and shows the count only to the QR/profile owner.
-- **Secure sign-in flow**: built with Better Auth.
+- **Secure sign-in flow**: built with Better Auth — email + password, Google sign-in, and password reset by email.
+- **Admin analytics**: a private `/admin` page with product-wide usage totals, restricted to the addresses in `ADMIN_EMAIL`.
 
 ---
 
@@ -68,6 +69,27 @@ The click tracker currently works like this:
 - repeated clicks from the same IP on the same platform do **not** increase the count
 - the signed-in owner’s own clicks are **excluded**
 - counts are visible **only in the owner dashboard**
+
+Public profile views (the page a QR scan lands on) are recorded separately in `profileView`:
+
+- **every** view is stored, so both total views and unique visitors (distinct IP hash) are available
+- the profile **owner's own visits are excluded**
+- **link-unfurl bots and crawlers are excluded** by user agent, as are App Router prefetches
+- these numbers roll up **only** into the admin page, never onto a public page
+
+---
+
+## 🛡️ Admin Analytics
+
+`/admin` shows product-wide usage: accounts, active users, QR codes issued, QR downloads and
+link copies, profile views, unique visitors, social link clicks, a 14-day activity strip,
+recent signups, and top profiles by views.
+
+Access is gated **server-side** on an exact, case-insensitive match against `ADMIN_EMAIL`:
+
+- `ADMIN_EMAIL` accepts one address or a comma-separated list
+- if it is unset or empty, **nobody** is an admin (fails closed)
+- anyone else — signed in or not — gets a **404**, so the route's existence isn't disclosed
 
 ---
 
@@ -104,6 +126,22 @@ BETTER_AUTH_URL=http://localhost:3000
 # Optional but recommended for click hashing isolation
 CLICK_TRACKER_SECRET=your-click-tracker-secret
 
+# Admin analytics at /admin. One address, or comma-separated for several.
+# Unset or empty means nobody can reach /admin.
+ADMIN_EMAIL=you@example.com
+
+# Optional: Google sign-in. Both values must be set or the Google buttons stay hidden.
+# Register this authorized redirect URI in the Google Cloud console:
+#   ${BETTER_AUTH_URL}/api/auth/callback/google
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Optional: password-reset email via Resend. Without these, /forgot-password still
+# responds normally but no mail is sent (the failure is logged server-side).
+# RESEND_FROM must use a domain verified in your Resend account.
+RESEND_API_KEY=
+RESEND_FROM=DOXA Social <noreply@yourdomain.com>
+
 # Optional: profile image uploads
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -139,9 +177,15 @@ npm run db:studio # Open Drizzle Studio
 
 - `app/` — routes, pages, API handlers
 - `app/dashboard/` — private owner dashboard
+- `app/admin/` — admin-only usage analytics
 - `app/u/[publicId]/` — public profile page
 - `lib/schema.ts` — Drizzle schema
+- `lib/ensure-sqlite-schema.ts` — startup DDL; keep in sync with `lib/schema.ts`
 - `lib/social-clicks.ts` — unique click tracking helpers
+- `lib/profile-views.ts` — public profile view tracking (owner/bot/prefetch exclusions)
+- `lib/admin.ts` — `ADMIN_EMAIL` gate
+- `lib/admin-analytics.ts` — admin aggregate queries
+- `lib/email.ts` — Resend transactional email
 - `public/logo.svg` — DOXA brand mark used in the app
 
 ---

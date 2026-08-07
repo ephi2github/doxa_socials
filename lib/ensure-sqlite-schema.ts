@@ -69,5 +69,27 @@ export function ensureSqliteSchema(sqlite: Database.Database) {
       FOREIGN KEY ("profileUserId") REFERENCES "profile"("userId") ON DELETE cascade,
       UNIQUE ("profileUserId", "platformId", "ipHash")
     );
+
+    CREATE TABLE IF NOT EXISTS "profileView" (
+      "id" text PRIMARY KEY NOT NULL,
+      "profileUserId" text NOT NULL,
+      "ipHash" text NOT NULL,
+      "createdAt" integer NOT NULL,
+      FOREIGN KEY ("profileUserId") REFERENCES "profile"("userId") ON DELETE cascade
+    );
+
+    CREATE INDEX IF NOT EXISTS "profileView_profileCreatedAtIdx"
+      ON "profileView" ("profileUserId", "createdAt");
+
+    CREATE TABLE IF NOT EXISTS "qrEvent" (
+      "id" text PRIMARY KEY NOT NULL,
+      "profileUserId" text NOT NULL,
+      "kind" text NOT NULL,
+      "createdAt" integer NOT NULL,
+      FOREIGN KEY ("profileUserId") REFERENCES "profile"("userId") ON DELETE cascade
+    );
+
+    CREATE INDEX IF NOT EXISTS "qrEvent_kindCreatedAtIdx"
+      ON "qrEvent" ("kind", "createdAt");
   `);
 }

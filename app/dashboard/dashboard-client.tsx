@@ -6,6 +6,7 @@ import PlatformIcon from "@/components/platform-icon";
 import QRPreview from "@/components/qr-preview";
 import { useToast } from "@/components/toast-provider";
 import Image from "next/image";
+import Link from "next/link";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
@@ -17,10 +18,12 @@ export default function DashboardClient({
   initialProfile,
   user,
   clickCountsByPlatform,
+  isAdmin = false,
 }: {
   initialProfile: any,
   user: any,
   clickCountsByPlatform: Record<string, number>,
+  isAdmin?: boolean,
 }) {
   const [displayName, setDisplayName] = useState(initialProfile.displayName || user.name || "");
   const [photoUrl, setPhotoUrl] = useState<string>(initialProfile.photoUrl || "");
@@ -160,11 +163,30 @@ export default function DashboardClient({
     toast.info("Photo removed", "Your change saves automatically.");
   };
 
-  const publicUrl = `${window.location.origin}/u/${initialProfile.publicId}`;
+  // `window` doesn't exist while this client component is server-rendered (a direct load
+  // or hard refresh of /dashboard), so start from the configured app URL and correct to the
+  // real origin once mounted.
+  const [origin, setOrigin] = useState(process.env.NEXT_PUBLIC_APP_URL || "");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const publicUrl = `${origin}/u/${initialProfile.publicId}`;
+
+  // Fire-and-forget: a tracking failure must never block the copy or the download.
+  const trackQrEvent = (kind: "download" | "copy_link") => {
+    fetch("/api/qr-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind }),
+    }).catch(() => {});
+  };
 
   const copyPublicUrl = async () => {
     try {
       await navigator.clipboard.writeText(publicUrl);
+      trackQrEvent("copy_link");
       toast.success("Link copied", "Your public DOXA Social URL is on the clipboard.");
     } catch (_err) {
       toast.error("Copy failed", "The public link could not be copied.");
@@ -207,6 +229,14 @@ export default function DashboardClient({
               ? "Save failed"
               : "All changes saved"}
           </div>
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:bg-white/15"
+            >
+              Admin
+            </Link>
+          ) : null}
           <button
             onClick={() => signOut({ fetchOptions: { onSuccess: () => router.push("/") } })}
             className="text-sm font-bold opacity-60 transition-opacity hover:opacity-100"
@@ -455,7 +485,7 @@ export default function DashboardClient({
         <aside className="hidden min-w-0 space-y-4 lg:block lg:sticky lg:top-10 lg:space-y-6">
           <div className="glass-card overflow-hidden p-4 text-center sm:p-6">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-6 opacity-60">Your Live QR Code</h2>
-            <QRPreview value={publicUrl} />
+            <QRPreview value={publicUrl} onDownload={() => trackQrEvent("download")} />
             <div className="mt-6">
               <p className="text-[11px] font-bold uppercase tracking-wider text-secondary mb-2">Public Link</p>
               <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">

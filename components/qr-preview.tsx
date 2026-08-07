@@ -7,9 +7,10 @@ interface QRPreviewProps {
   value: string;
   size?: number;
   showDownload?: boolean;
+  onDownload?: () => void;
 }
 
-export default function QRPreview({ value, size = 200, showDownload = true }: QRPreviewProps) {
+export default function QRPreview({ value, size = 200, showDownload = true, onDownload }: QRPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function QRPreview({ value, size = 200, showDownload = true }: QR
     link.download = "doxa-qr.png";
     link.href = url;
     link.click();
+    onDownload?.();
   };
 
   return (

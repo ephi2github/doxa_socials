@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { profile } from "@/lib/schema";
 import { getProfileSocialUniqueClickCounts } from "@/lib/social-clicks";
@@ -28,10 +29,11 @@ export default async function DashboardPage() {
   const clickCountsByPlatform = await getProfileSocialUniqueClickCounts(session.user.id);
 
   return (
-    <DashboardClient 
-      initialProfile={userProfile} 
+    <DashboardClient
+      initialProfile={userProfile}
       user={session.user}
       clickCountsByPlatform={clickCountsByPlatform}
+      isAdmin={isAdminEmail(session.user.email)}
     />
   );
 }
