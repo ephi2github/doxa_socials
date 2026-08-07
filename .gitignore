@@ -5,3 +5,12 @@
 *.jpg
 .DS_Store
 node_modules/
+
+# secrets — never commit
+.env
+.env*.local
+
+# build output & local database
+/.next/
+/data/
+*.tsbuildinfo

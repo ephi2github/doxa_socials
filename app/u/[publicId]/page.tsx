@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { recordProfileView } from "@/lib/profile-views";
 import { profile } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -20,11 +21,19 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
     notFound();
   }
 
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   const isOwner = session?.user.id === userProfile.userId;
+
+  await recordProfileView({
+    profileUserId: userProfile.userId,
+    headers: requestHeaders,
+    isOwner,
+  });
+
   const links = (userProfile.links || {}) as Record<string, string>;
   const activePlatforms = PLATFORMS.filter(p => links[p.id]);
 
@@ -33,7 +42,7 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
   return (
     <div className="max-w-[460px] mx-auto px-6 pt-12 pb-20 relative min-h-screen">
       {isOwner && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+        <div className="fixed top-5 right-5 z-50 md:top-6 md:right-6">
           <Link href="/dashboard" className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-accent transition-all flex items-center gap-2">
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Edit your card
@@ -44,7 +53,7 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-on-dark mb-8">
            <Image src="/logo.svg" alt="" width={16} height={16} />
-           DOXA Social
+           DOXA Socials
         </div>
 
         <div className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white shadow-2xl shadow-primary/40 ring-4 ring-white/10 mb-6">
@@ -62,11 +71,11 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       <div className="space-y-4">
         {activePlatforms.map(p => {
           const handle = links[p.id];
-          const url = p.url(handle);
+          const trackedUrl = `/u/${publicId}/${p.id}`;
           return (
             <a 
               key={p.id}
-              href={url}
+              href={trackedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl border border-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all group"
@@ -87,9 +96,9 @@ export default async function UserPage({ params }: { params: Promise<{ publicId:
       </div>
 
       <footer className="mt-16 text-center">
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity">
-          Made with 
-          <span className="text-white">DOXA Social</span>
+        <Link href="https://doxaplc.com" className="inline-flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity">
+          Made by
+          <span className="text-white">DOXA Innovations</span>
           <div className="w-4 h-4 invert opacity-80">
             <Image src="/logo.svg" alt="" width={16} height={16} />
           </div>
