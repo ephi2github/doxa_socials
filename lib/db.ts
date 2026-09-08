@@ -1,19 +1,20 @@
 import 'server-only';
-import path from 'node:path';
-import fs from 'node:fs';
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
-import { ensureSqliteSchema } from './ensure-sqlite-schema';
 
-const dbPath = process.env.DATABASE_URL || path.join(process.cwd(), 'data', 'doxa.db');
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+const connectionString = process.env.DATABASE_URL;
 
-const sqlite = new Database(dbPath);
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
-ensureSqliteSchema(sqlite);
+if (!connectionString) {
+  throw new Error('DATABASE_URL is required');
+}
 
-export const db = drizzle(sqlite, { schema });
+const pool = new Pool({
+  connectionString,
+  max: 5,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
+});
+
+export const db = drizzle(pool, { schema });
 export { schema };
