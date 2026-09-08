@@ -3,14 +3,11 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error('DATABASE_URL is required');
-}
-
+// node-postgres is lazy: constructing the pool does not open a connection.
+// This lets `next build` compile without runtime secrets. Kubernetes supplies
+// DATABASE_URL before the application handles any database-backed request.
 const pool = new Pool({
-  connectionString,
+  connectionString: process.env.DATABASE_URL,
   max: 5,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
