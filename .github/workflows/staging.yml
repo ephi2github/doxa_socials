@@ -1,0 +1,27 @@
+name: Staging image
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full 40-character lowercase source SHA to build
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: doxa-innovations/.github/.github/workflows/doxa-container-build.yml@main
+    with:
+      source_sha: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.sha }}
+      environment: staging
+      image: ghcr.io/doxa-innovations/doxa-socials
+      use_infisical: false
+      pre_build_command: npm install --package-lock-only --ignore-scripts

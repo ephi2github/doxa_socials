@@ -63,7 +63,6 @@ function toNumber(value: unknown) {
   return Number(value) || 0;
 }
 
-/** UTC day key, matching SQLite's date(col, 'unixepoch'). */
 function dayKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -74,6 +73,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   const seriesStart = daysAgo(SERIES_DAYS - 1);
 
   const countAll = sql<number>`count(*)`;
+  const signupDay = sql<string>`to_char(${user.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD')`;
+  const viewDay = sql<string>`to_char(${profileView.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD')`;
 
   const [
     [accounts],
@@ -93,24 +94,23 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     db.select({ value: countAll }).from(user),
     db.select({ value: countAll }).from(user).where(gte(user.createdAt, since7d)),
     db.select({ value: countAll }).from(user).where(gte(user.createdAt, since30d)),
-    // "Active" = signed in recently enough to still hold a session touched in the window.
     db
       .select({ value: sql<number>`count(distinct ${session.userId})` })
       .from(session)
       .where(gte(session.updatedAt, since30d)),
-    // Every profile carries exactly one permanent QR code, so this is also "QR codes issued".
     db.select({ value: countAll }).from(profile),
-    // A profile counts as "set up" once at least one platform has a non-empty handle.
-    // `key is not null` skips profiles whose links were stored as a JSON scalar rather
-    // than an object — json_each yields a single null-keyed row for those.
     db
       .select({ value: countAll })
       .from(profile)
       .where(
-        sql`exists (
-          select 1 from json_each(${profile.links})
-          where json_each.key is not null and json_each.value != ''
-        )`
+        sql`case
+          when jsonb_typeof(${profile.links}) = 'object' then exists (
+            select 1
+            from jsonb_each_text(${profile.links}) as entry(key, value)
+            where entry.value <> ''
+          )
+          else false
+        end`
       ),
     db.select({ kind: qrEvent.kind, value: countAll }).from(qrEvent).groupBy(qrEvent.kind),
     db
@@ -121,21 +121,15 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       .from(profileView),
     db.select({ value: countAll }).from(profileSocialUniqueClick),
     db
-      .select({
-        day: sql<string>`date(${user.createdAt}, 'unixepoch')`,
-        value: countAll,
-      })
+      .select({ day: signupDay, value: countAll })
       .from(user)
       .where(gte(user.createdAt, seriesStart))
-      .groupBy(sql`date(${user.createdAt}, 'unixepoch')`),
+      .groupBy(signupDay),
     db
-      .select({
-        day: sql<string>`date(${profileView.createdAt}, 'unixepoch')`,
-        value: countAll,
-      })
+      .select({ day: viewDay, value: countAll })
       .from(profileView)
       .where(gte(profileView.createdAt, seriesStart))
-      .groupBy(sql`date(${profileView.createdAt}, 'unixepoch')`),
+      .groupBy(viewDay),
     db
       .select({
         id: user.id,
@@ -183,10 +177,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     };
   });
 
-  const totalAccounts = toNumber(accounts?.value);
-
   return {
-    totalAccounts,
+    totalAccounts: toNumber(accounts?.value),
     newAccounts7d: toNumber(accounts7d?.value),
     newAccounts30d: toNumber(accounts30d?.value),
     activeUsers30d: toNumber(active30d?.value),

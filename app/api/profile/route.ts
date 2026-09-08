@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PLATFORM_KEYS } from "@/lib/platforms";
 import { deleteR2ObjectByUrl, getR2KeyFromPublicUrl } from "@/lib/r2";
-import { profile } from "@/lib/schema";
+import { profile, type LinksMap } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -42,15 +42,15 @@ export async function PUT(req: Request) {
   const { displayName, photoUrl, links } = data;
   const nextDisplayName = typeof displayName === "string" ? displayName : "";
   const nextPhotoUrl = typeof photoUrl === "string" && photoUrl.trim() ? photoUrl.trim() : null;
-  const nextLinks =
+  const nextLinks: LinksMap =
     links && typeof links === "object"
       ? Object.fromEntries(
           Object.entries(links).filter(
             ([platformId, value]) => PLATFORM_KEYS.has(platformId) && typeof value === "string"
           )
-        )
+        ) as LinksMap
       : {};
-  
+
   await db
     .update(profile)
     .set({

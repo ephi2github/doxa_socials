@@ -10,7 +10,7 @@ import { resetPasswordEmail, sendEmail } from './email';
 export const GOOGLE_ENABLED = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, { provider: 'sqlite' }),
+  database: drizzleAdapter(db, { provider: 'pg' }),
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
@@ -50,8 +50,6 @@ export const auth = betterAuth({
             // Google supplies an avatar URL; it is not an R2 object, so the profile
             // update path's R2 cleanup ignores it.
             photoUrl: createdUser.image || null,
-            // Must be an object: the column is mode:'json', so a '{}' string would be
-            // stored as the JSON string "{}" instead of an empty object.
             links: {},
             updatedAt: new Date(),
           }).onConflictDoNothing();
