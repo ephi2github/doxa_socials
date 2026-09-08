@@ -1,0 +1,32 @@
+name: Production image
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full 40-character lowercase source SHA already tested in staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'staging')
+    uses: doxa-innovations/.github/.github/workflows/doxa-container-build.yml@main
+    with:
+      source_sha: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.event.pull_request.head.sha }}
+      environment: production
+      image: ghcr.io/doxa-innovations/doxa-socials
+      use_infisical: false
+      pre_build_command: npm install --package-lock-only --ignore-scripts
