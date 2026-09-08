@@ -1,28 +1,32 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+
+export type LinksMap = Record<string, string>;
+
+const timestamptz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
 
 // Better Auth required tables (id/text everywhere — Better Auth uses string ids)
-export const user = sqliteTable('user', {
+export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: integer('emailVerified', { mode: 'boolean' }).notNull().default(false),
+  emailVerified: boolean('emailVerified').notNull().default(false),
   image: text('image'),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamptz('createdAt').notNull(),
+  updatedAt: timestamptz('updatedAt').notNull(),
 });
 
-export const session = sqliteTable('session', {
+export const session = pgTable('session', {
   id: text('id').primaryKey(),
-  expiresAt: integer('expiresAt', { mode: 'timestamp' }).notNull(),
+  expiresAt: timestamptz('expiresAt').notNull(),
   token: text('token').notNull().unique(),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamptz('createdAt').notNull(),
+  updatedAt: timestamptz('updatedAt').notNull(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
   userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
 });
 
-export const account = sqliteTable('account', {
+export const account = pgTable('account', {
   id: text('id').primaryKey(),
   accountId: text('accountId').notNull(),
   providerId: text('providerId').notNull(),
@@ -30,34 +34,34 @@ export const account = sqliteTable('account', {
   accessToken: text('accessToken'),
   refreshToken: text('refreshToken'),
   idToken: text('idToken'),
-  accessTokenExpiresAt: integer('accessTokenExpiresAt', { mode: 'timestamp' }),
-  refreshTokenExpiresAt: integer('refreshTokenExpiresAt', { mode: 'timestamp' }),
+  accessTokenExpiresAt: timestamptz('accessTokenExpiresAt'),
+  refreshTokenExpiresAt: timestamptz('refreshTokenExpiresAt'),
   scope: text('scope'),
   password: text('password'),
-  createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamptz('createdAt').notNull(),
+  updatedAt: timestamptz('updatedAt').notNull(),
 });
 
-export const verification = sqliteTable('verification', {
+export const verification = pgTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
-  expiresAt: integer('expiresAt', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('createdAt', { mode: 'timestamp' }),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }),
+  expiresAt: timestamptz('expiresAt').notNull(),
+  createdAt: timestamptz('createdAt'),
+  updatedAt: timestamptz('updatedAt'),
 });
 
 // Application tables
-export const profile = sqliteTable('profile', {
+export const profile = pgTable('profile', {
   userId: text('userId').primaryKey().references(() => user.id, { onDelete: 'cascade' }),
   publicId: text('publicId').notNull().unique(),
   displayName: text('displayName').notNull(),
   photoUrl: text('photoUrl'),
-  links: text('links', { mode: 'json' }).notNull().default('{}'),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
+  links: jsonb('links').$type<LinksMap>().notNull().default({}),
+  updatedAt: timestamptz('updatedAt').notNull(),
 });
 
-export const profileSocialUniqueClick = sqliteTable(
+export const profileSocialUniqueClick = pgTable(
   'profileSocialUniqueClick',
   {
     id: text('id').primaryKey(),
@@ -66,7 +70,7 @@ export const profileSocialUniqueClick = sqliteTable(
       .references(() => profile.userId, { onDelete: 'cascade' }),
     platformId: text('platformId').notNull(),
     ipHash: text('ipHash').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
+    createdAt: timestamptz('createdAt').notNull(),
   },
   (table) => ({
     profilePlatformIpUnique: uniqueIndex('profileSocialUniqueClick_profilePlatformIpUnique').on(
@@ -79,7 +83,7 @@ export const profileSocialUniqueClick = sqliteTable(
 
 // One row per public profile view. Deliberately not de-duplicated: total views come from
 // count(*), unique visitors from count(distinct ipHash).
-export const profileView = sqliteTable(
+export const profileView = pgTable(
   'profileView',
   {
     id: text('id').primaryKey(),
@@ -87,7 +91,7 @@ export const profileView = sqliteTable(
       .notNull()
       .references(() => profile.userId, { onDelete: 'cascade' }),
     ipHash: text('ipHash').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
+    createdAt: timestamptz('createdAt').notNull(),
   },
   (table) => ({
     profileCreatedAtIdx: index('profileView_profileCreatedAtIdx').on(
@@ -98,7 +102,7 @@ export const profileView = sqliteTable(
 );
 
 // Explicit QR distribution actions taken by an owner from their dashboard.
-export const qrEvent = sqliteTable(
+export const qrEvent = pgTable(
   'qrEvent',
   {
     id: text('id').primaryKey(),
@@ -106,7 +110,7 @@ export const qrEvent = sqliteTable(
       .notNull()
       .references(() => profile.userId, { onDelete: 'cascade' }),
     kind: text('kind').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull(),
+    createdAt: timestamptz('createdAt').notNull(),
   },
   (table) => ({
     kindCreatedAtIdx: index('qrEvent_kindCreatedAtIdx').on(table.kind, table.createdAt),
@@ -117,4 +121,3 @@ export const QR_EVENT_KINDS = ['download', 'copy_link'] as const;
 export type QrEventKind = (typeof QR_EVENT_KINDS)[number];
 
 export type Profile = typeof profile.$inferSelect;
-export type LinksMap = Record<string, string>;
