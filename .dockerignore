@@ -1,0 +1,17 @@
+.git
+.github
+.ai
+.claude
+.playwright-mcp
+node_modules
+.next
+coverage
+.env
+.env.*
+data
+*.sqlite
+*.db
+*.db-wal
+*.db-shm
+*.tsbuildinfo
+README.md
